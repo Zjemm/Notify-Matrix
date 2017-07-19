@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# Make backups with rsync and echo the output to journald
+# Send notifications to a matrix server (via separate matrix-client-script)
+# Author: Eelke Smit
+# Email: mail [at] sjemm {dot} net
+# Please use/share/comment/reference
+# Date: 18-07-2017
+
+# Usage: run this script with arguments
+# Example: ./rsync-backup /home/music /backup/
+# Where "/home/music" will be $1 and "/backup/"" will be $2
+
+# Set a username to notify for error's
+# For example all messages may be muted in a room, except for "User Mentions"
+# This way you will only be notified when there is an error using the username here
+USER=UsertoNotify
+
+# Create a VAR of the rsync output to be used in the notification message
+OUTPUT=$(rsync -av --delete $1 $2)
+
+case $? in
+  0)
+    echo "Backup via Rsync Success" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Backup via Rsync Success
+Back-upped: $1
+
+Here is the output:
+$OUTPUT"
+    ;;
+  1)
+    echo "Syntax or usage error" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER - Syntax or usage error"
+    ;;
+  2)
+    echo "Protocol incompatibility" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Protocol incompatibility"
+    ;;
+  3)
+    echo "Errors selecting input/output files, dirs" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Errors selecting input/output files, dirs"
+    ;;
+  4)
+    echo "Requested action not supported: an attempt was made to manipulate 64-bit files on a platform that cannot support them; or an option was specified that is supported by the client and not by the server." | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Requested action not supported: an attempt was made to manipulate 64-bit files on a platform that cannot support them; or an option was specified that is supported by the client and not by the server."
+    ;;
+  5)
+    echo "Error starting client-server protocol" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Error starting client-server protocol"
+    ;;
+  6)
+    echo "Daemon unable to append to log-file" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Daemon unable to append to log-file"
+    ;;
+  10)
+    echo "Error in socket I/O" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Error in socket I/O"
+    ;;
+  11)
+    echo "Error in file I/O" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Error in file I/O"
+    ;;
+  12)
+    echo "Error in rsync protocol data stream" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Error in rsync protocol data stream"
+    ;;
+  13)
+    echo "Errors with program diagnostics" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Errors with program diagnostics"
+    ;;
+  14)
+    echo "Error in IPC code" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Error in IPC code"
+    ;;
+  20)
+    echo "Received SIGUSR1 or SIGINT" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Received SIGUSR1 or SIGINT"
+    ;;
+  21)
+    echo "Some error returned by waitpid()" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Some error returned by waitpid()"
+    ;;
+  22)
+    echo "Error allocating core memory buffers" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Error allocating core memory buffers"
+    ;;
+  23)
+    echo "Partial transfer due to error" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Partial transfer due to error"
+    ;;
+  24)
+    echo "Partial transfer due to vanished source files" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Partial transfer due to vanished source files"
+    ;;
+  25)
+    echo "The --max-delete limit stopped deletions" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  The --max-delete limit stopped deletions"
+    ;;
+  30)
+    echo "Timeout in data send/receive" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Timeout in data send/receive"
+    ;;
+  35)
+    echo "Timeout waiting for daemon connection" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Timeout waiting for daemon connection"
+    ;;
+  *)
+    echo "Unknown return code $? from rsync" | systemd-cat -t rsync -p info
+    notify-matrix "Monitor notification: Hey $USER -  Unknown return code $? from rsync"
+esac
