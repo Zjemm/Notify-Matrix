@@ -5,7 +5,8 @@
 # Author: Zjemm
 # Email: mail [at] sjemm {dot} net
 # Please use/share/comment/reference
-# Date: 18-07-2017
+# Date: 23-08-2017
+# Version 0.4
 
 # Usage: run this script with arguments
 # Example: ./notify-matrix "This is my message for you"
