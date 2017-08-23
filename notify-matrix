@@ -1,107 +1,31 @@
-#!/bin/bash
+#!/usr/bin/env python3
 
-# Make backups with rsync and echo the output to journald
-# Send notifications to a matrix server (via separate matrix-client-script)
+# Send messages to a matrix room with this python matrix client
+# For example to be used in combination with rsync backup
 # Author: Eelke Smit
 # Email: mail [at] sjemm {dot} net
 # Please use/share/comment/reference
-# Date: 23-08-2017
-# Requirements: fonts-symbola
+# Date: 18-07-2017
 
 # Usage: run this script with arguments
-# Example: ./rsync-backup /home/music /backup/
-# Where "/home/music" will be $1 and "/backup/"" will be $2
+# Example: ./notify-matrix "This is my message for you"
 
-# Set a username to notify for error's
-# For example all messages may be muted in a room, except for "User Mentions"
-# This way you will only be notified when there is an error using the username here
-USER=UsertoNotify
+# Requirements: python3 matrix module needed
+# Example: pip3 install matrix_client
 
-# Create a VAR of the rsync output to be used in the notification message
-OUTPUT=$(rsync -a --delete $1 $2)
+import sys
+from matrix_client.client import MatrixClient
 
-case $? in
-  0)
-    echo "Backup of $1 Success" | systemd-cat -t rsync -p info
-    notify-matrix "✅ Backup of $1 Success"
-    ;;
-  1)
-    echo "Backup of $1 Failed - Syntax or usage error" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  2)
-    echo "Backup of $1 Failed - Protocol incompatibility" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  3)
-    echo "Backup of $1 Failed - Errors selecting input/output files, dirs" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  4)
-    echo "Backup of $1 Failed - Requested action not supported: an attempt was made to manipulate 64-bit files on a platform that cannot support them; or an option was specified that is supported by the client and not by the server." | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  5)
-    echo "Backup of $1 Failed - Error starting client-server protocol" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  6)
-    echo "Backup of $1 Failed - Daemon unable to append to log-file" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  10)
-    echo "Backup of $1 Failed - Error in socket I/O" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  11)
-    echo "Backup of $1 Failed - Error in file I/O" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  12)
-    echo "Backup of $1 Failed - Error in rsync protocol data stream" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  13)
-    echo "Backup of $1 Failed - Errors with program diagnostics" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  14)
-    echo "Backup of $1 Failed - Error in IPC code" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  20)
-    echo "Backup of $1 Failed - Received SIGUSR1 or SIGINT" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  21)
-    echo "Backup of $1 Failed - Some error returned by waitpid()" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  22)
-    echo "Backup of $1 Failed - Error allocating core memory buffers" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  23)
-    echo "Backup of $1 Failed - Partial transfer due to error" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  24)
-    echo "Backup of $1 Failed - Partial transfer due to vanished source files" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  25)
-    echo "Backup of $1 Failed - The --max-delete limit stopped deletions" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  30)
-    echo "Backup of $1 Failed - Timeout in data send/receive" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  35)
-    echo "Backup of $1 Failed - Timeout waiting for daemon connection" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-    ;;
-  *)
-    echo "Backup of $1 Failed - Unknown return code $? from rsync" | systemd-cat -t rsync -p info
-    notify-matrix "⛔ $USER: Backup of $1 Failed"
-esac
+# Fill in your own matrix server url here
+client = MatrixClient("https://yourserver.domain")
+
+# Use an Existing user
+# Fill in your own matrix username and password here
+token = client.login_with_password(username="youruser", password="yourpassword")
+
+# Join an existing matrix room (fill in yours here)
+room = client.join_room("#yourroom:yourserver.domain")
+
+# Send the argument given in bash to the room
+# Example ./notify-matrix "This is my message for you"
+room.send_text(sys.argv[1])
