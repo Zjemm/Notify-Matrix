@@ -2,7 +2,7 @@
 
 # Make backups with rsync and echo the output to journald
 # Send notifications to a matrix server (via separate matrix-client-script)
-# Author: Eelke Smit
+# Author: Zjemm
 # Email: mail [at] sjemm {dot} net
 # Please use/share/comment/reference
 # Date: 23-08-2017
