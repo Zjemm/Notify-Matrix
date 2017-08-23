@@ -2,7 +2,7 @@
 
 # Send messages to a matrix room with this python matrix client
 # For example to be used in combination with rsync backup
-# Author: Eelke Smit
+# Author: Zjemm
 # Email: mail [at] sjemm {dot} net
 # Please use/share/comment/reference
 # Date: 18-07-2017
